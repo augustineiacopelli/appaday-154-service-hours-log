@@ -147,6 +147,8 @@ textarea{min-height:64px;resize:vertical}
 .starter{background:var(--parch2);border:1px dashed var(--gold);border-radius:10px;padding:.85rem;margin-bottom:1rem}
 .starter p{margin:0 0 .4rem;font-size:.92rem;color:var(--ink2)}
 .starter b{color:var(--ink)}
+.added{font-size:.88rem;color:var(--ink);margin:.2rem 0 .3rem;min-height:0}
+.added span{display:inline-block;background:var(--gold-l);border:1px solid var(--gold);border-radius:999px;padding:.15rem .6rem;margin:.15rem .25rem .15rem 0;font-weight:600}
 label .manage{float:right;font-weight:600;font-size:.78rem;text-decoration:none;padding:0 .2rem}
 label .manage:hover{text-decoration:underline}
 .addcause{display:grid;grid-template-columns:1fr auto;gap:.5rem;margin-top:.6rem}
@@ -219,12 +221,14 @@ footer a{display:inline-flex;min-height:44px;align-items:center}
   <section class="card" aria-labelledby="addH">
     <h2 id="addH">Log Hours</h2>
     <div class="starter" id="starter" hidden>
-      <p><b>Start by naming the causes you serve.</b> Tap any suggestion to add it, or type your own. You can rename, reorder, or archive them anytime in Settings.</p>
+      <p><b>Start by naming the causes you serve.</b> Tap as many suggestions as fit, or type your own. You can rename, reorder, or archive them anytime in Settings.</p>
+      <div class="added" id="starterAdded"></div>
       <div class="chips" id="starterChips"></div>
       <div class="addcause">
         <input type="text" id="starterInput" maxlength="40" placeholder="Your own cause" aria-label="Your own cause">
-        <button type="button" class="btn primary" id="starterAdd">Add</button>
+        <button type="button" class="btn" id="starterAdd">Add</button>
       </div>
+      <button type="button" class="btn primary" id="starterDone" style="width:100%;margin-top:.6rem" disabled>Done, start logging</button>
     </div>
     <form id="addForm" autocomplete="off">
       <div class="row">
@@ -342,7 +346,7 @@ function fmtDate(s){
 
 function defaultState(){
   return {
-    version:1, volunteerName:'', orgLine:'', lastCauseId:null,
+    version:1, volunteerName:'', orgLine:'', lastCauseId:null, setupDone:false,
     causes:[],
     entries:[]
   };
@@ -430,7 +434,7 @@ function renderCauseSelects(){
   var fc = $('fCause');
   var pref = fc.value || state.lastCauseId;
   fillSelect(fc, act.map(function(c){ return {v:c.id,t:c.name}; }), pref);
-  renderStarter(act.length === 0);
+  renderStarter();
   var allOpts = [{v:'all',t:'All causes'}].concat(state.causes.map(function(c){ return {v:c.id,t:c.name + (c.archived ? ' (archived)' : '')}; }));
   fillSelect($('hCause'), allOpts, $('hCause').value || 'all');
   fillSelect($('rCause'), allOpts, $('rCause').value || 'all');
@@ -508,12 +512,17 @@ function addCauseNamed(n){
   save(); renderAll(); toast('Added ' + n);
   return true;
 }
-function renderStarter(show){
-  var box = $('starter');
-  box.hidden = !show;
-  $('addForm').style.opacity = show ? '.45' : '';
-  $('addForm').style.pointerEvents = show ? 'none' : '';
+function renderStarter(){
+  var act = activeCauses();
+  if (!state.setupDone && state.entries.length) { state.setupDone = true; save(); }
+  var show = !state.setupDone;
+  var lock = act.length === 0;
+  $('starter').hidden = !show;
+  $('addForm').style.opacity = lock ? '.45' : '';
+  $('addForm').style.pointerEvents = lock ? 'none' : '';
   if (!show) return;
+  $('starterDone').disabled = lock;
+  $('starterAdded').innerHTML = act.length ? 'Added: ' + act.map(function(c){ return '<span>' + esc(c.name) + '</span>'; }).join('') : '';
   $('starterChips').innerHTML = SUGGESTIONS.filter(function(n){ return !nameTaken(n); }).map(function(n){
     return '<button type="button" class="chip" data-n="' + esc(n) + '">+ ' + esc(n) + '</button>';
   }).join('');
@@ -524,6 +533,10 @@ function initStarter(){
   });
   $('starterAdd').addEventListener('click', function(){
     if (addCauseNamed($('starterInput').value)) $('starterInput').value = '';
+  });
+  $('starterDone').addEventListener('click', function(){
+    if (!activeCauses().length) return;
+    state.setupDone = true; save(); renderAll(); $('fHours').focus();
   });
   $('starterInput').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') { ev.preventDefault(); $('starterAdd').click(); } });
 }
@@ -760,6 +773,7 @@ function importBackup(obj){
     volunteerName: typeof obj.volunteerName === 'string' ? obj.volunteerName : '',
     orgLine: typeof obj.orgLine === 'string' ? obj.orgLine : '',
     lastCauseId: typeof obj.lastCauseId === 'string' ? obj.lastCauseId : null,
+    setupDone: true,
     causes: obj.causes.map(function(c){ return {id:c.id, name:c.name.trim(), archived:!!c.archived}; }),
     entries: obj.entries.map(function(e){ return {id:e.id, date:e.date, causeId:e.causeId, hours:toQ(e.hours)/4, note: typeof e.note === 'string' ? e.note : '', created: Number(e.created) || Date.now()}; })
   };
