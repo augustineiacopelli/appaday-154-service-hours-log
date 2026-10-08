@@ -149,8 +149,18 @@ textarea{min-height:64px;resize:vertical}
 .starter b{color:var(--ink)}
 .added{font-size:.88rem;color:var(--ink);margin:.2rem 0 .3rem;min-height:0}
 .added span{display:inline-block;background:var(--gold-l);border:1px solid var(--gold);border-radius:999px;padding:.15rem .6rem;margin:.15rem .25rem .15rem 0;font-weight:600}
-label .manage{float:right;font-weight:600;font-size:.78rem;text-decoration:none;padding:0 .2rem}
+label .manage{float:right;font-weight:600;font-size:.78rem;color:var(--gold-d);background:none;border:none;padding:0 .2rem;cursor:pointer}
 label .manage:hover{text-decoration:underline}
+.gear{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid rgba(221,208,238,.35);border-radius:10px;color:var(--gold-l);cursor:pointer}
+.gear:hover{background:rgba(221,208,238,.12)}
+.modal{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-start;justify-content:center;padding:1rem;padding-top:max(1rem,env(safe-area-inset-top));overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal[hidden]{display:none}
+.modal-back{position:fixed;inset:0;background:rgba(43,35,24,.55)}
+.sheet{position:relative;width:100%;max-width:640px;margin:auto 0}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.sheet-head h2{margin:0}
+.iconbtn{font-size:1.6rem;line-height:1;padding:0;width:44px}
+body.modal-open{overflow:hidden}
 .addcause{display:grid;grid-template-columns:1fr auto;gap:.5rem;margin-top:.6rem}
 
 /* report preview */
@@ -177,7 +187,7 @@ footer a{display:inline-flex;min-height:44px;align-items:center}
   @page{margin:.6in}
   body{background:#fff;color:#000}
   body *{visibility:hidden}
-  .topbar,main,footer,.banner,.toast{display:none !important}
+  .topbar,main,footer,.banner,.toast,.modal{display:none !important}
   #printReport,#printReport *{visibility:visible}
   #printReport{display:block;position:static;color:#000;font-family:Georgia,serif}
   #printReport .rep th,#printReport .rep td{border-bottom:1px solid #999;color:#000}
@@ -194,6 +204,7 @@ footer a{display:inline-flex;min-height:44px;align-items:center}
   <span class="num">154</span>
   <span class="name">Service Hours Log</span>
   <a href="https://augustineiacopelli.github.io/appaday/">AppADay Portfolio</a>
+  <button type="button" class="gear" id="gearBtn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 </header>
 <div class="banner" id="banner" role="alert"></div>
 
@@ -221,7 +232,7 @@ footer a{display:inline-flex;min-height:44px;align-items:center}
   <section class="card" aria-labelledby="addH">
     <h2 id="addH">Log Hours</h2>
     <div class="starter" id="starter" hidden>
-      <p><b>Start by naming the causes you serve.</b> Tap as many suggestions as fit, or type your own. You can rename, reorder, or archive them anytime in Settings.</p>
+      <p><b>Start by naming the causes you serve.</b> Tap as many suggestions as fit, or type your own. You can rename, reorder, or archive them anytime from the gear.</p>
       <div class="added" id="starterAdded"></div>
       <div class="chips" id="starterChips"></div>
       <div class="addcause">
@@ -233,7 +244,7 @@ footer a{display:inline-flex;min-height:44px;align-items:center}
     <form id="addForm" autocomplete="off">
       <div class="row">
         <div class="field"><label for="fDate">Date</label><input type="date" id="fDate" required></div>
-        <div class="field"><label for="fCause">Cause <a href="#setH" class="manage">Manage</a></label><select id="fCause" required></select></div>
+        <div class="field"><label for="fCause">Cause <button type="button" class="manage" id="manageBtn">Manage</button></label><select id="fCause" required></select></div>
       </div>
       <div class="field">
         <label for="fHours">Hours</label>
@@ -286,8 +297,12 @@ footer a{display:inline-flex;min-height:44px;align-items:center}
     <div class="preview" id="rPreview"><div class="empty">Choose a cause and period, then Generate.</div></div>
   </section>
 
-  <section class="card span2" aria-labelledby="setH">
-    <h2 id="setH">Settings</h2>
+</main>
+
+<div class="modal" id="settingsModal" hidden>
+  <div class="modal-back" data-close="1"></div>
+  <section class="card sheet" role="dialog" aria-modal="true" aria-labelledby="setH">
+    <div class="sheet-head"><h2 id="setH">Settings</h2><button type="button" class="btn ghost iconbtn" id="setClose" aria-label="Close settings">&times;</button></div>
     <div class="row">
       <div class="field"><label for="sName">Volunteer name</label><input type="text" id="sName" maxlength="80" placeholder="Your name for reports"></div>
       <div class="field"><label for="sOrg">Organization line</label><input type="text" id="sOrg" maxlength="120" placeholder="e.g. your church, troop, or school"></div>
@@ -307,7 +322,7 @@ footer a{display:inline-flex;min-height:44px;align-items:center}
     </div>
     <div class="hint" id="bHint">Data lives only in this browser. Back up now and then.</div>
   </section>
-</main>
+</div>
 
 <div id="printReport" aria-hidden="true"></div>
 
@@ -426,7 +441,7 @@ function renderTotals(){
     var y = yr === 'all' ? all : all.filter(function(e){ return yearOf(e.date) === yr; });
     html += '<div class="tile' + (c.archived ? ' arch' : '') + '" style="--cc:var(--c' + (i%8) + ')"><div class="tn">' + esc(c.name) + (c.archived ? ' <span class="tag">archived</span>' : '') + '</div><div class="tv">' + fmtH(sumHours(y)) + '</div><div class="ta">' + fmtH(sumHours(all)) + ' all time</div></div>';
   });
-  $('tiles').innerHTML = html || '<div class="empty">Add your first cause in Log Hours or Settings to begin.</div>';
+  $('tiles').innerHTML = html || '<div class="empty">Add your first cause in Log Hours or under the gear to begin.</div>';
 }
 
 function renderCauseSelects(){
@@ -810,6 +825,23 @@ function initBackup(){
     });
   });
 }
+
+/* settings modal */
+var lastFocus = null;
+function openSettings(){
+  lastFocus = document.activeElement;
+  $('settingsModal').hidden = false; document.body.classList.add('modal-open');
+  setTimeout(function(){ $('setClose').focus(); }, 0);
+}
+function closeSettings(){
+  $('settingsModal').hidden = true; document.body.classList.remove('modal-open');
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+$('gearBtn').addEventListener('click', openSettings);
+$('manageBtn').addEventListener('click', function(ev){ ev.preventDefault(); openSettings(); });
+$('setClose').addEventListener('click', closeSettings);
+$('settingsModal').addEventListener('click', function(ev){ if (ev.target.getAttribute('data-close')) closeSettings(); });
+document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && !$('settingsModal').hidden) closeSettings(); });
 
 $('totYear').addEventListener('change', renderTotals);
 load();

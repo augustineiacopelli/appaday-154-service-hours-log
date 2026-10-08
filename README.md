@@ -13,11 +13,11 @@ The totals strip shows a large grand total for the selected year (or all time) w
 
 The report builder filters by cause and by this year, last year, a specific year, or a custom date range. It renders an on screen preview and a print layout with your volunteer name, organization line, a per cause breakdown when reporting on all causes, a totals row, and signature lines for the volunteer and a verifier (name, title, signature, date). The same report copies or downloads as a fully quoted CSV with a Total row.
 
-Settings hold your volunteer name and organization line, plus cause management: add with a duplicate check, rename inline, reorder, archive, and delete only when a cause has no entries. Backup JSON downloads everything; Restore JSON validates the file before a two tap Replace overwrites local data.
+The gear in the header opens Settings, which hold your volunteer name and organization line, plus cause management: add with a duplicate check, rename inline, reorder, archive, and delete only when a cause has no entries. Backup JSON downloads everything; Restore JSON validates the file before a two tap Replace overwrites local data.
 
 ## Data
 
-All data stays in this browser under the localStorage key `appaday-154-service-hours` (version 1). The app starts with no causes, so every volunteer sets up their own. On first run the Log Hours card shows a starter panel with one tap suggestions (Church, Scouts, School, PTA, Food Bank, Hospital, Shelter, Youth Sports, Community) and a field for a custom name. Add as many as you like; each shows as added, and Done, start logging closes the panel once at least one exists. The panel also closes on its own after the first entry. The Manage link beside the Cause field jumps to Settings for later changes. Hours are summed in quarter hour units to avoid floating point drift. Back up periodically, since clearing site data erases the log.
+All data stays in this browser under the localStorage key `appaday-154-service-hours` (version 1). The app starts with no causes, so every volunteer sets up their own. On first run the Log Hours card shows a starter panel with one tap suggestions (Church, Scouts, School, PTA, Food Bank, Hospital, Shelter, Youth Sports, Community) and a field for a custom name. Add as many as you like; each shows as added, and Done, start logging closes the panel once at least one exists. The panel also closes on its own after the first entry. The Manage link beside the Cause field opens the same Settings panel for later changes. Hours are summed in quarter hour units to avoid floating point drift. Back up periodically, since clearing site data erases the log.
 
 ## Stack
 
